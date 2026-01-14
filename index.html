@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SCP-096 — DO NOT LOOK</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  background: black;
+  color: #cfcfcf;
+  font-family: monospace;
+  overflow: hidden;
+}
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 10;
+}
+button {
+  background: black;
+  color: #cfcfcf;
+  border: 1px solid #444;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+canvas {
+  display: block;
+  margin: auto;
+  cursor: crosshair;
+}
+#status {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  font-size: 12px;
+}
+#lie {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  font-size: 12px;
+  color: #6f6;
+}
+#warning {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #f55;
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<div id="overlay">
+  <h1>SECURE • CONTAIN • PROTECT</h1>
+  <p>Video Feed: CORRUPTED</p>
+  <button onclick="start()">BEGIN ANALYSIS</button>
+</div>
+
+<canvas id="c" width="800" height="450"></canvas>
+<div id="warning"></div>
+<div id="status">Exposure: 0%</div>
+<div id="lie">STATUS: SAFE</div>
+
+<audio id="cry" loop>
+  <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=">
+</audio>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+const status = document.getElementById("status");
+const warning = document.getElementById("warning");
+const lie = document.getElementById("lie");
+const cry = document.getElementById("cry");
+
+let revealed = 0;
+let limit = 18; // percent
+let active = false;
+let time = 0;
+
+ctx.fillStyle = "black";
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+function noise() {
+  const img = ctx.createImageData(canvas.width, canvas.height);
+  for (let i=0;i<img.data.length;i+=4){
+    let v = Math.random()*255;
+    img.data[i]=img.data[i+1]=img.data[i+2]=v;
+    img.data[i+3]=255;
+  }
+  ctx.putImageData(img,0,0);
+}
+
+function start() {
+  document.getElementById("overlay").style.display="none";
+  active = true;
+  cry.volume = 0.05;
+  cry.play();
+  loop();
+}
+
+canvas.addEventListener("mousemove", e=>{
+  if(!active) return;
+  const r = canvas.getBoundingClientRect();
+  const x = e.clientX - r.left;
+  const y = e.clientY - r.top;
+
+  ctx.clearRect(x-20,y-20,40,40);
+  revealed += 0.02;
+  status.textContent = "Exposure: " + revealed.toFixed(1) + "%";
+});
+
+function loop(){
+  if(!active) return;
+  time++;
+
+  noise();
+
+  // escalation
+  cry.volume = Math.min(0.6, revealed/limit);
+  lie.textContent = revealed < limit*0.7 ? "STATUS: SAFE" : "STATUS: SAFE";
+  
+  if(revealed > limit*0.5){
+    warning.textContent = "SIGNAL INSTABILITY";
+  }
+  if(revealed > limit*0.8){
+    warning.textContent = "DO NOT ADJUST FEED";
+  }
+
+  if(revealed >= limit){
+    end();
+    return;
+  }
+
+  requestAnimationFrame(loop);
+}
+
+function end(){
+  active = false;
+  cry.pause();
+  document.body.innerHTML = `
+    <div style="color:#f55;text-align:center;margin-top:20%">
+    <h1>096 HAS SEEN YOU</h1>
+    <p>Time to contact: ${Math.floor(time/60)} seconds</p>
+    <p>There was never a safe amount.</p>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>
