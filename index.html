@@ -161,10 +161,23 @@ function noise() {
 
 function start() {
   document.getElementById("overlay").style.display = "none";
-  document.body.requestFullscreen?.();
-  canvas.requestPointerLock?.();
-  audioCtx.resume();
+
+  // Try fullscreen, but don't block if it fails
+  try {
+    document.body.requestFullscreen();
+  } catch (e) {}
+
+  // Try pointer lock, but don't block if it fails
+  try {
+    canvas.requestPointerLock();
+  } catch (e) {}
+
+  // Start audio safely
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
   startAudio();
+
   active = true;
   loop();
 }
@@ -231,5 +244,6 @@ function end(type) {
       <p>Termination Mode: ${type}</p>
       <p>Time Remaining: ${Math.max(0, 30 - Math.floor(time/60))} seconds</p>
       <p>You were
+
 
 
